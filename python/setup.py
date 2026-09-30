@@ -26,7 +26,7 @@ else:
         def get_tag(self):
             abi = 'none'
             if system == 'Darwin':
-                oses = 'macosx_10_6_universal2'
+                oses = 'macosx_11_0_universal2'
             elif system == 'Windows' and architecture == '32bit':
                 oses = 'win32'
             elif system == 'Windows' and machine == 'ARM64':
@@ -55,7 +55,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/alphacep/vosk-api",
     packages=setuptools.find_packages(),
-    package_data = {'vosk': ['*.so', '*.dll', '*.dyld']},
+    package_data = {'vosk': ['*.so', '*.dll', '*.dylib']},
     entry_points = {
         'console_scripts': ['vosk-transcriber=vosk.transcriber.cli:main'],
     },

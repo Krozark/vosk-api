@@ -15,7 +15,8 @@ on:
     paths:
       - 'travis/**'
       - 'ios/**'
-      - 'python/setup.py'
+      - 'python/**'
+      - 'src/**'
       - 'android/lib/build-vosk.sh'
       - '.github/workflows/build.yml'
 
@@ -148,10 +149,40 @@ jobs:
           name: libvosk-ios-xcframework
           path: build/ios-libvosk/libvosk.xcframework
 
+  macos:
+    name: macOS (universal2 libvosk.dylib + wheel)
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install build tools
+        run: |
+          brew install autoconf automake libtool
+          pip install wheel cffi requests tqdm srt websockets
+      - name: Build libvosk.dylib (arm64 + x86_64)
+        env:
+          SLICES: macos-arm64 macos-x86_64
+        run: ios/build_libvosk.sh build/macos
+      - name: Build the wheel
+        run: |
+          cp build/macos/macos/libvosk.dylib src/
+          python -m pip wheel python --no-deps --no-build-isolation -w wheelhouse
+          mkdir -p wheelhouse/vosk-macos-universal2
+          cp build/macos/macos/libvosk.dylib build/macos/macos/vosk_api.h wheelhouse/vosk-macos-universal2/
+      - name: Smoke test the wheel
+        run: travis/smoke_test_wheel.sh wheelhouse/*.whl
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vosk-macos-universal2
+          path: wheelhouse/
+
   release:
     name: GitHub release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [linux, linux-cross, windows, android, ios]
+    needs: [linux, linux-cross, windows, android, ios, macos]
     runs-on: ubuntu-latest
     permissions:
       contents: write
