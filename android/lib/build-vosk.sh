@@ -32,8 +32,7 @@ WORKDIR_BASE=`pwd`/build
 PATH=$ANDROID_TOOLCHAIN_PATH/bin:$PATH
 OPENFST_VERSION=1.8.0
 
-# ARCHS can restrict the build, e.g. ARCHS="arm64-v8a"
-for arch in ${ARCHS:-armeabi-v7a arm64-v8a x86_64 x86}; do
+for arch in armeabi-v7a arm64-v8a x86_64 x86; do
 
 WORKDIR=${WORKDIR_BASE}/kaldi_${arch}
 
