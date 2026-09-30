@@ -1,6 +1,6 @@
 name: Build libvosk for iOS
 
-# Compiles Kaldi + libvosk (static, Accelerate) for iOS device and simulator
+# Compiles Kaldi + libvosk (dynamic, Accelerate) for iOS device and simulator
 # and publishes libvosk.xcframework as an artifact.
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
   push:
     paths:
       - 'ios/build_libvosk.sh'
-      - 'ios/libvosk_static.mk'
+      - 'ios/libvosk_dylib.mk'
       - '.github/workflows/ios.yml'
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
       - name: Show xcframework content
         run: |
           plutil -p build/ios-libvosk/libvosk.xcframework/Info.plist
-          find build/ios-libvosk/libvosk.xcframework -name '*.a' -exec lipo -info {} \; -exec ls -lh {} \;
+          find build/ios-libvosk/libvosk.xcframework -name '*.dylib' -exec lipo -info {} \; -exec ls -lh {} \;
 
       - uses: actions/upload-artifact@v4
         with:

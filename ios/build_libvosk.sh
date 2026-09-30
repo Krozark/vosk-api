@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Build libvosk.xcframework (static, Accelerate) for iOS device + simulator (arm64).
+# Build libvosk.xcframework (dynamic libvosk.dylib, Accelerate) for iOS device + simulator (arm64).
 #
 # Mirrors vosk-api/android/lib/build-vosk.sh, but uses the `--ios` mode of Alpha
-# Cephei's Kaldi fork (static libs, Apple Accelerate instead of OpenBLAS/CLAPACK).
+# Cephei's Kaldi fork (Apple Accelerate instead of OpenBLAS/CLAPACK; Kaldi/OpenFst are static and linked into libvosk.dylib).
 # Needs macOS + Xcode + `brew install autoconf automake libtool`.
 #
 # Usage: [SLICES="device simulator"] ios/build_libvosk.sh [output_dir]
@@ -44,9 +44,9 @@ build_slice() {
             --host="$HOST" --fst-root="$w/local" --fst-version="$OPENFST_VERSION" &&
         make -j"$JOBS" depend && make -j"$JOBS" online2 rnnlm)
 
-    # libvosk.a = vosk objects + all Kaldi/OpenFst archives
-    make -C "$VOSK_SRC" -f "$HERE/libvosk_static.mk" libvosk.a \
-        VOSK_SRC="$VOSK_SRC" OUTDIR="$w/vosk" EXT=a \
+    # libvosk.dylib = vosk objects + all Kaldi/OpenFst archives
+    make -C "$VOSK_SRC" -f "$HERE/libvosk_dylib.mk" all \
+        VOSK_SRC="$VOSK_SRC" OUTDIR="$w/vosk" EXT=dylib \
         KALDI_ROOT="$w/kaldi" OPENFST_ROOT="$w/local" \
         HAVE_OPENBLAS_CLAPACK=0 HAVE_ACCELERATE=1 \
         CXX="$cxx" EXTRA_CFLAGS="-DHAVE_CLAPACK"
@@ -65,7 +65,7 @@ xcframework_args=()
 for slice in ${SLICES:-device simulator}; do
     # shellcheck disable=SC2046 # slice_spec yields "<sdk> <target>"
     build_slice "$slice" $(slice_spec "$slice")
-    xcframework_args+=(-library "$OUT/$slice/vosk/libvosk.a" -headers "$OUT/headers")
+    xcframework_args+=(-library "$OUT/$slice/vosk/libvosk.dylib" -headers "$OUT/headers")
 done
 
 rm -rf "$OUT/libvosk.xcframework"
