@@ -27,7 +27,8 @@ def open_dll():
         if hasattr(os, "add_dll_directory"):
             os.add_dll_directory(dlldir)
         return _ffi.dlopen(os.path.join(dlldir, "libvosk.dll"))
-    elif sys.platform == "linux":
+    elif sys.platform in ("linux", "android"):
+        # "android": CPython >= 3.13 on Android; older builds report "linux"
         return _ffi.dlopen(os.path.join(dlldir, "libvosk.so"))
     elif sys.platform in ("darwin", "ios"):
         # "ios": CPython >= 3.13 on iOS; older builds report "darwin"
