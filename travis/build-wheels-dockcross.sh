@@ -10,7 +10,7 @@ KALDI_ROOT=/opt/kaldi EXTRA_LDFLAGS="-latomic" make -j $(nproc)
 # Decide architecture name
 export VOSK_SOURCE=/opt/vosk-api
 case $CROSS_TRIPLE in
-    *armv7-*)
+    *armv7-*|arm-cortexa8_neon-linux-gnueabihf)
         export VOSK_MACHINE=armv7l
         export VOSK_ARCHITECTURE=32bit
         ;;
