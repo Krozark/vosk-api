@@ -12,6 +12,7 @@ on:
     paths:
       - 'ios/build_libvosk.sh'
       - 'ios/libvosk_dylib.mk'
+      - 'ios/test/**'
       - '.github/workflows/ios.yml'
 
 jobs:
@@ -34,6 +35,9 @@ jobs:
         run: |
           plutil -p build/ios-libvosk/libvosk.xcframework/Info.plist
           find build/ios-libvosk/libvosk.xcframework -name '*.dylib' -exec lipo -info {} \; -exec ls -lh {} \;
+
+      - name: Smoke test in the iOS Simulator
+        run: ios/test/smoke_test.sh build/ios-libvosk/libvosk.xcframework
 
       - uses: actions/upload-artifact@v4
         with:
