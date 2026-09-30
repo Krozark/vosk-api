@@ -48,7 +48,7 @@ jobs:
             openblas: TARGET=ARMV8
           - name: armv7
             dockerfile: Dockerfile.dockcross
-            image: alphacep/dockcross-linux-armv7
+            image: dockcross/linux-armv7a
             openblas: TARGET=ARMV7
           - name: armv7-musl
             dockerfile: Dockerfile.dockcross-musl

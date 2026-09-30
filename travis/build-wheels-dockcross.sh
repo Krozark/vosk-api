@@ -33,10 +33,15 @@ case $CROSS_TRIPLE in
         ;;
 esac
 
+# An unknown triple would give a nameless output folder and wheel
+: "${VOSK_MACHINE:?unsupported CROSS_TRIPLE: $CROSS_TRIPLE}"
+
 # Copy library to output folder
 mkdir -p /io/wheelhouse/vosk-linux-${VOSK_MACHINE}${VOSK_VARIANT}
 cp /opt/vosk-api/src/*.so /opt/vosk-api/src/vosk_api.h /io/wheelhouse/vosk-linux-$VOSK_MACHINE${VOSK_VARIANT}
 
 # Build wheel
 python3 -m pip install requests tqdm srt websockets wheel --break-system-packages
-python3 -m pip wheel /opt/vosk-api/python --no-deps -w /io/wheelhouse
+# --no-build-isolation: use the cffi installed by the Dockerfile; an isolated build would compile
+# cffi again with the cross compiler
+python3 -m pip wheel /opt/vosk-api/python --no-deps --no-build-isolation -w /io/wheelhouse
