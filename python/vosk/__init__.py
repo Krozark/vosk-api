@@ -29,7 +29,8 @@ def open_dll():
         return _ffi.dlopen(os.path.join(dlldir, "libvosk.dll"))
     elif sys.platform == "linux":
         return _ffi.dlopen(os.path.join(dlldir, "libvosk.so"))
-    elif sys.platform == "darwin":
+    elif sys.platform in ("darwin", "ios"):
+        # "ios": CPython >= 3.13 on iOS; older builds report "darwin"
         return _ffi.dlopen(os.path.join(dlldir, "libvosk.dyld"))
     else:
         raise TypeError("Unsupported platform")
