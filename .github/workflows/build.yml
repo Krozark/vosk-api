@@ -1,0 +1,58 @@
+name: Build libvosk and Python wheels
+
+# Builds libvosk from THIS repository's sources for every platform Ava supports, so that they
+# all run the same Vosk version (iOS is built by ios.yml).
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'travis/**'
+      - 'android/lib/build-vosk.sh'
+      - '.github/workflows/build.yml'
+
+jobs:
+  linux:
+    name: Linux x86_64 (wheel)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build libvosk and the manylinux wheel
+        working-directory: travis
+        run: ./build-docker.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vosk-linux-x86_64
+          path: wheelhouse/
+
+  windows:
+    name: Windows x64 (wheel, MinGW cross-build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build libvosk.dll and the wheel
+        working-directory: travis
+        run: ./build-docker-win.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vosk-windows-x64
+          path: wheelhouse/
+
+  android:
+    name: Android (libvosk.so)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: sudo apt-get update -qq && sudo apt-get install -y autoconf automake libtool cmake
+      - name: Build libvosk.so for the ABIs Ava ships (arm64-v8a, armeabi-v7a)
+        working-directory: android/lib
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME"
+          ARCHS="arm64-v8a armeabi-v7a" ./build-vosk.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vosk-android
+          path: android/lib/src/main/jniLibs/*/libvosk.so

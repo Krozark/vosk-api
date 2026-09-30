@@ -2,9 +2,9 @@
 set -e -x
 
 # Build libvosk
-cd /opt
-git clone https://github.com/alphacep/vosk-api
-cd vosk-api/src
+# Build this repository's sources (mounted in /io), not upstream's
+cp -a /io /opt/vosk-api
+cd /opt/vosk-api/src
 KALDI_ROOT=/opt/kaldi OPENFST_ROOT=/opt/kaldi/tools/openfst OPENBLAS_ROOT=/opt/kaldi/tools/OpenBLAS/install make -j $(nproc)
 
 # Copy dlls to output folder
