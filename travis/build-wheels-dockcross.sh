@@ -41,7 +41,8 @@ mkdir -p /io/wheelhouse/vosk-linux-${VOSK_MACHINE}${VOSK_VARIANT}
 cp /opt/vosk-api/src/*.so /opt/vosk-api/src/vosk_api.h /io/wheelhouse/vosk-linux-$VOSK_MACHINE${VOSK_VARIANT}
 
 # Build wheel
-python3 -m pip install requests tqdm srt websockets wheel --break-system-packages
+# PIP_BREAK_SYSTEM_PACKAGES: the --break-system-packages flag does not exist in older pips
+PIP_BREAK_SYSTEM_PACKAGES=1 python3 -m pip install requests tqdm srt websockets wheel
 # --no-build-isolation: use the cffi installed by the Dockerfile; an isolated build would compile
 # cffi again with the cross compiler
 python3 -m pip wheel /opt/vosk-api/python --no-deps --no-build-isolation -w /io/wheelhouse
