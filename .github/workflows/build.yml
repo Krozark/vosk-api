@@ -1,12 +1,17 @@
 name: Build libvosk and Python wheels
 
 # Builds libvosk and the Python wheel from THIS repository's sources for every platform, so that
-# they all run the same Vosk version (iOS is built by ios.yml).
+# they all run the same Vosk version.
 on:
   workflow_dispatch:
+    inputs:
+      ios_slices:
+        description: 'iOS slices to build (device, simulator)'
+        default: 'device simulator'
   push:
     paths:
       - 'travis/**'
+      - 'ios/**'
       - 'python/setup.py'
       - 'android/lib/build-vosk.sh'
       - '.github/workflows/build.yml'
@@ -116,3 +121,26 @@ jobs:
         with:
           name: vosk-android
           path: android/lib/src/main/jniLibs/*/libvosk.so
+
+  ios:
+    name: iOS (libvosk.xcframework, device + simulator)
+    runs-on: macos-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: brew install autoconf automake libtool
+      - name: Build libvosk.xcframework
+        env:
+          SLICES: ${{ inputs.ios_slices || 'device simulator' }}
+        run: ios/build_libvosk.sh build/ios-libvosk
+      - name: Show xcframework content
+        run: |
+          plutil -p build/ios-libvosk/libvosk.xcframework/Info.plist
+          find build/ios-libvosk/libvosk.xcframework -name '*.dylib' -exec lipo -info {} \; -exec ls -lh {} \;
+      - name: Smoke test in the iOS Simulator
+        run: ios/test/smoke_test.sh build/ios-libvosk/libvosk.xcframework
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libvosk-ios-xcframework
+          path: build/ios-libvosk/libvosk.xcframework
