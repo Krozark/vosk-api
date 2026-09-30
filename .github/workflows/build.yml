@@ -1,11 +1,15 @@
 name: Build libvosk and Python wheels
 
 # Builds libvosk and the Python wheel from THIS repository's sources for every platform, so that
-# they all run the same Vosk version. Pushing a tag vX.Y.Z also publishes everything as a GitHub
-# release and refreshes the pip index on GitHub Pages.
+# they all run the same Vosk version. Pushing a tag vX.Y.Z (or running this workflow
+# with the release_tag input) also publishes everything as a GitHub release and refreshes the pip
+# index on GitHub Pages.
 on:
   workflow_dispatch:
     inputs:
+      release_tag:
+        description: 'Publish a release with this tag (e.g. v0.3.75) once everything is built'
+        default: ''
       ios_slices:
         description: 'iOS slices to build (device, simulator)'
         default: 'device simulator'
@@ -181,7 +185,7 @@ jobs:
 
   release:
     name: GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.release_tag != ''
     needs: [linux, linux-cross, windows, android, ios, macos]
     runs-on: ubuntu-latest
     permissions:
@@ -195,6 +199,8 @@ jobs:
         run: travis/package-release.sh artifacts assets
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.release_tag || github.ref_name }}
+          target_commitish: ${{ github.sha }}
           files: assets/*
           generate_release_notes: true
 
