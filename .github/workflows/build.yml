@@ -169,7 +169,7 @@ jobs:
       - name: Build the wheel
         run: |
           cp build/macos/macos/libvosk.dylib src/
-          python -m pip wheel python --no-deps --no-build-isolation -w wheelhouse
+          python -m pip wheel ./python --no-deps --no-build-isolation -w wheelhouse
           mkdir -p wheelhouse/vosk-macos-universal2
           cp build/macos/macos/libvosk.dylib build/macos/macos/vosk_api.h wheelhouse/vosk-macos-universal2/
       - name: Smoke test the wheel
