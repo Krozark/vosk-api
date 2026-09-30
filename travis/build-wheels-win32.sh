@@ -9,7 +9,7 @@ EXTRA_LDFLAGS=-Wl,--out-implib,libvosk.lib CXX=i686-w64-mingw32-g++-posix EXT=dl
 
 # Copy dependencies
 cp /usr/lib/gcc/i686-w64-mingw32/*-posix/libstdc++-6.dll /opt/vosk-api/src
-cp /usr/lib/gcc/i686-w64-mingw32/*-posix/libgcc_s_sjlj-1.dll /opt/vosk-api/src
+cp /usr/lib/gcc/i686-w64-mingw32/*-posix/libgcc_s_*-1.dll /opt/vosk-api/src
 cp /usr/i686-w64-mingw32/lib/libwinpthread-1.dll /opt/vosk-api/src
 
 # Copy dlls to output folder
