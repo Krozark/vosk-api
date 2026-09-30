@@ -2,7 +2,7 @@ name: Build libvosk and Python wheels
 
 # Builds libvosk and the Python wheel from THIS repository's sources for every platform, so that
 # they all run the same Vosk version. Pushing a tag vX.Y.Z also publishes everything as a GitHub
-# release.
+# release and refreshes the pip index on GitHub Pages.
 on:
   workflow_dispatch:
     inputs:
@@ -197,3 +197,27 @@ jobs:
         with:
           files: assets/*
           generate_release_notes: true
+
+  # pip index listing the wheels of every release (Settings > Pages > Source: GitHub Actions)
+  pages:
+    name: pip index (GitHub Pages)
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the index
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: travis/build_pip_index.py "$GITHUB_REPOSITORY" site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
