@@ -2,8 +2,8 @@
 set -e -x
 
 # Build so file
-cd /opt
-git clone https://github.com/alphacep/vosk-api
+# Build this repository's sources (mounted in /io), not upstream's
+cp -a /io /opt/vosk-api
 cd /opt/vosk-api/src
 KALDI_ROOT=/opt/kaldi EXTRA_LDFLAGS="-latomic" make -j $(nproc)
 

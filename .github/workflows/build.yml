@@ -1,53 +1,113 @@
 name: Build libvosk and Python wheels
 
-# Builds libvosk from THIS repository's sources for every platform Ava supports, so that they
-# all run the same Vosk version (iOS is built by ios.yml).
+# Builds libvosk and the Python wheel from THIS repository's sources for every platform, so that
+# they all run the same Vosk version (iOS is built by ios.yml).
 on:
   workflow_dispatch:
   push:
     paths:
       - 'travis/**'
+      - 'python/setup.py'
       - 'android/lib/build-vosk.sh'
       - '.github/workflows/build.yml'
 
 jobs:
   linux:
-    name: Linux x86_64 (wheel)
+    name: Linux ${{ matrix.name }} (manylinux_2_28 wheel)
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x86_64
+            script: ./build-docker.sh
+          - name: x86_64-mkl
+            script: ./build-docker-mkl.sh
     steps:
       - uses: actions/checkout@v4
-      - name: Build libvosk and the manylinux wheel
+      - name: Build libvosk and the wheel
         working-directory: travis
-        run: ./build-docker.sh
+        run: ${{ matrix.script }}
       - uses: actions/upload-artifact@v4
         with:
-          name: vosk-linux-x86_64
+          name: vosk-linux-${{ matrix.name }}
+          path: wheelhouse/
+
+  linux-cross:
+    name: Linux ${{ matrix.name }} (cross-build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: aarch64
+            dockerfile: Dockerfile.dockcross-manylinux
+            image: dockcross/manylinux_2_28-aarch64
+            openblas: TARGET=ARMV8
+          - name: armv7
+            dockerfile: Dockerfile.dockcross
+            image: alphacep/dockcross-linux-armv7
+            openblas: TARGET=ARMV7
+          - name: armv7-musl
+            dockerfile: Dockerfile.dockcross-musl
+            image: dockcross/linux-armv7l-musl
+            openblas: TARGET=ARMV7
+          - name: x86
+            dockerfile: Dockerfile.dockcross
+            image: dockcross/linux-x86
+            openblas: TARGET=CORE2 DYNAMIC_ARCH=1
+          - name: riscv64
+            dockerfile: Dockerfile.dockcross
+            image: dockcross/linux-riscv64
+            openblas: TARGET=RISCV64_GENERIC ARCH=riscv64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build libvosk and the wheel
+        run: |
+          docker build --build-arg "DOCKCROSS_IMAGE=${{ matrix.image }}" \
+            --build-arg "OPENBLAS_ARGS=${{ matrix.openblas }}" \
+            --file travis/${{ matrix.dockerfile }} --tag kaldi-cross travis
+          docker run --rm -v "$PWD":/io kaldi-cross /io/travis/build-wheels-dockcross.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vosk-linux-${{ matrix.name }}
           path: wheelhouse/
 
   windows:
-    name: Windows x64 (wheel, MinGW cross-build)
+    name: Windows ${{ matrix.name }} (MinGW cross-build)
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64
+            script: ./build-docker-win.sh
+          - name: x86
+            script: ./build-docker-win32.sh
+          - name: arm64
+            script: ./build-docker-winaarch64.sh
     steps:
       - uses: actions/checkout@v4
       - name: Build libvosk.dll and the wheel
         working-directory: travis
-        run: ./build-docker-win.sh
+        run: ${{ matrix.script }}
       - uses: actions/upload-artifact@v4
         with:
-          name: vosk-windows-x64
+          name: vosk-windows-${{ matrix.name }}
           path: wheelhouse/
 
   android:
-    name: Android (libvosk.so)
+    name: Android (libvosk.so, every ABI)
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - name: Install build tools
         run: sudo apt-get update -qq && sudo apt-get install -y autoconf automake libtool cmake
-      - name: Build libvosk.so for every ABI (armeabi-v7a, arm64-v8a, x86_64, x86)
+      - name: Build libvosk.so for armeabi-v7a, arm64-v8a, x86_64 and x86
         working-directory: android/lib
         run: |
           export ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME"

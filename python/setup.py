@@ -29,6 +29,8 @@ else:
                 oses = 'macosx_10_6_universal2'
             elif system == 'Windows' and architecture == '32bit':
                 oses = 'win32'
+            elif system == 'Windows' and machine == 'ARM64':
+                oses = 'win_arm64'
             elif system == 'Windows' and architecture == '64bit':
                 oses = 'win_amd64'
             elif system == 'Linux' and machine == 'aarch64' and architecture == '64bit':

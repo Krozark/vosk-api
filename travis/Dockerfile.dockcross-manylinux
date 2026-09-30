@@ -1,4 +1,4 @@
-ARG DOCKCROSS_IMAGE=dockcross/manylinux2014-aarch64
+ARG DOCKCROSS_IMAGE=dockcross/manylinux_2_28-aarch64
 FROM ${DOCKCROSS_IMAGE}
 
 LABEL description="A docker image for building portable Python linux binary wheels and Kaldi on other architectures"

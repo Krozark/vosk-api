@@ -2,9 +2,9 @@
 set -e -x
 
 # Build libvosk
-cd /opt
-git clone https://github.com/alphacep/vosk-api
-cd vosk-api/src
+# Build this repository's sources (mounted in /io), not upstream's
+cp -a /io /opt/vosk-api
+cd /opt/vosk-api/src
 EXTRA_LDFLAGS=-Wl,--out-implib,libvosk.lib CXX=i686-w64-mingw32-g++-posix EXT=dll KALDI_ROOT=/opt/kaldi/kaldi OPENFST_ROOT=/opt/kaldi/local OPENBLAS_ROOT=/opt/kaldi/local make -j $(nproc)
 
 # Copy dependencies

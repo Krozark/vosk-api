@@ -2,9 +2,9 @@
 set -e -x
 
 # Build libvosk
-cd /opt
-git clone https://github.com/alphacep/vosk-api
-cd vosk-api/src
+# Build this repository's sources (mounted in /io), not upstream's
+cp -a /io /opt/vosk-api
+cd /opt/vosk-api/src
 EXTRA_LDFLAGS=-Wl,--out-implib,libvosk.lib CXX=aarch64-w64-mingw32-g++ EXT=dll KALDI_ROOT=/opt/kaldi/kaldi OPENFST_ROOT=/opt/kaldi/local OPENBLAS_ROOT=/opt/kaldi/local make -j $(nproc)
 
 # Copy dlls to output folder
@@ -15,4 +15,5 @@ cp /opt/vosk-api/src/*.{dll,lib} /opt/vosk-api/src/vosk_api.h /io/wheelhouse/vos
 export VOSK_SOURCE=/opt/vosk-api
 export VOSK_SYSTEM=Windows
 export VOSK_ARCHITECTURE=64bit
+export VOSK_MACHINE=ARM64
 python3 -m pip -v wheel /opt/vosk-api/python --no-deps -w /io/wheelhouse
