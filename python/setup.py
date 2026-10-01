@@ -16,6 +16,23 @@ for lib in glob.glob(os.path.join(vosk_source, "src/lib*.*")):
     print ("Adding library", lib)
     shutil.copy(lib, "vosk")
 
+def platform_tag():
+    """Wheel platform tag of the libvosk binary that is packaged (the wheel itself is pure Python)."""
+    if system == 'Darwin':
+        return 'macosx_11_0_universal2'
+    if system == 'Windows':
+        if architecture == '32bit':
+            return 'win32'
+        return 'win_arm64' if machine == 'ARM64' else 'win_amd64'
+    if system == 'Linux':
+        if os.environ.get('VOSK_VARIANT') == '-musl':
+            return 'musllinux_1_2_' + machine
+        if machine == 'aarch64' and architecture == '64bit':
+            return 'manylinux_2_28_aarch64'  # built on the manylinux_2_28 image
+        return 'linux_' + {'x86': 'i686'}.get(machine, machine)
+    raise TypeError("Unknown build environment")
+
+
 # Create OS-dependent, but Python-independent wheels.
 try:
     from wheel.bdist_wheel import bdist_wheel
@@ -24,22 +41,7 @@ except ImportError:
 else:
     class bdist_wheel_tag_name(bdist_wheel):
         def get_tag(self):
-            abi = 'none'
-            if system == 'Darwin':
-                oses = 'macosx_11_0_universal2'
-            elif system == 'Windows' and architecture == '32bit':
-                oses = 'win32'
-            elif system == 'Windows' and machine == 'ARM64':
-                oses = 'win_arm64'
-            elif system == 'Windows' and architecture == '64bit':
-                oses = 'win_amd64'
-            elif system == 'Linux' and machine == 'aarch64' and architecture == '64bit':
-                oses = 'manylinux2014_aarch64'
-            elif system == 'Linux':
-                oses = 'linux_' + machine
-            else:
-                raise TypeError("Unknown build environment")
-            return 'py3', abi, oses
+            return 'py3', 'none', platform_tag()
     cmdclass = {'bdist_wheel': bdist_wheel_tag_name}
 
 with open("README.md", "rb") as fh:
