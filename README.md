@@ -70,7 +70,7 @@ Models are not included: download one from the [model list](https://alphacephei.
 | Windows | x86 | `win32` | `libvosk.dll` | built |
 | Windows | arm64 | `win_arm64` | `libvosk.dll` | built |
 | macOS 11+ | universal2 (arm64 + x86_64) | `macosx_11_0_universal2` | `libvosk.dylib` | transcription (arm64) |
-| Android (API 24+) | armeabi-v7a, arm64-v8a, x86, x86_64 | none (not installed by pip) | `libvosk.so` in `vosk-android.zip` | transcription (x86_64 emulator) |
+| Android (API 21+) | armeabi-v7a, arm64-v8a, x86, x86_64 | none (not installed by pip) | `libvosk.so` in `vosk-android.zip` | transcription (x86_64 emulator) |
 | iOS 13+ | arm64 (device and simulator) | none (not installed by pip) | `libvosk.xcframework` in `libvosk-ios-xcframework.zip` | transcription (simulator) |
 
 "built" means the binary is compiled and packaged by CI but not run on that architecture.
